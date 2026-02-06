@@ -1,7 +1,7 @@
-### CRAWLMIND ###
+# CRAWLMIND
 A thinking crawler, not a scraper.
 
-# REPOSITORY STRUCTURE
+### REPOSITORY STRUCTURE
 
 langgraph-web-crawler/
 │
