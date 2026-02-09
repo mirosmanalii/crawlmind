@@ -13,7 +13,7 @@ NO LangGraph logic
 """
 
 from typing import Dict, Any, List
-from crawler_graph.state import RuntimeSignals
+from crawlergraph.state import RuntimeSignals
 
 # Public API
 def extract_runtime_features(raw_signals: Dict[str, Any]) -> RuntimeSignals:

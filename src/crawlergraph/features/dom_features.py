@@ -12,7 +12,7 @@ NO LLMs
 
 from bs4 import BeautifulSoup
 from typing import List
-from crawler_graph.state import PageFeatures
+from crawlergraph.state import PageFeatures
 
 # Public API
 def extract_dom_features(dom: str, url: str | None = None) -> PageFeatures:

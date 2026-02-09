@@ -5,8 +5,8 @@ Thin wrapper that applies page-type classification rules
 to the current CrawlState and updates the state in-place.
 """
 
-from crawler_graph.state import CrawlState
-from crawler_graph.classifiers.page_type import classify_page_type
+from crawlergraph.state import CrawlState
+from crawlergraph.classifiers.page_type import classify_page_type
 
 
 def classify_page(state: CrawlState) -> CrawlState:

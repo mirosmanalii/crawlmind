@@ -9,7 +9,7 @@ LLM fallback is intentionally NOT used here.
 """
 
 from typing import Tuple
-from crawler_graph.state import PageType, PageFeatures, RuntimeSignals
+from crawlergraph.state import PageType, PageFeatures, RuntimeSignals
 
 # Public API
 def classify_page_type(
