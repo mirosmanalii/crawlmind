@@ -1,7 +1,7 @@
 # CRAWLMIND
 A thinking crawler, not a scraper.
 
-# PROJECT DIRECTORY 
+## Project Directory
 
 crawlmind/
 ├── README.md
