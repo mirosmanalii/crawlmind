@@ -3,11 +3,7 @@ from typing import List, Dict, Optional, Set
 from pydantic import BaseModel, Field
 from datetime import datetime
 
-
-# -----------------------------
 # Enums
-# -----------------------------
-
 class PageType(str, Enum):
     LOGIN = "LOGIN"
     AUTH_CHALLENGE = "AUTH_CHALLENGE"
@@ -20,7 +16,6 @@ class PageType(str, Enum):
     EMPTY = "EMPTY"
     UNKNOWN = "UNKNOWN"
 
-
 class DefectCategory(str, Enum):
     FUNCTIONAL = "Functional"
     UI = "UI"
@@ -28,7 +23,6 @@ class DefectCategory(str, Enum):
     ACCESSIBILITY = "Accessibility"
     CONTENT = "Content"
     SECURITY = "Security"
-
 
 class StopReason(str, Enum):
     MAX_PAGES_REACHED = "MAX_PAGES_REACHED"
@@ -38,7 +32,6 @@ class StopReason(str, Enum):
     TERMINAL_ERROR = "TERMINAL_ERROR"
     SUCCESS = "SUCCESS"
 
-
 class ActionType(str, Enum):
     CLICK = "CLICK"
     TYPE = "TYPE"
@@ -47,11 +40,7 @@ class ActionType(str, Enum):
     WAIT = "WAIT"
     STOP = "STOP"
 
-
-# -----------------------------
 # Feature Models
-# -----------------------------
-
 class PageFeatures(BaseModel):
     has_form: bool = False
     has_username_input: bool = False
@@ -67,7 +56,6 @@ class PageFeatures(BaseModel):
 
     url_patterns: List[str] = Field(default_factory=list)
 
-
 class RuntimeSignals(BaseModel):
     status_code: int = 200
     redirect_detected: bool = False
@@ -82,11 +70,7 @@ class RuntimeSignals(BaseModel):
     long_tasks_ms: Optional[int] = None
     page_load_time_ms: Optional[int] = None
 
-
-# -----------------------------
 # Defects
-# -----------------------------
-
 class Defect(BaseModel):
     category: DefectCategory
     subtype: str
@@ -100,11 +84,7 @@ class Defect(BaseModel):
 
     detected_at: datetime = Field(default_factory=datetime.utcnow)
 
-
-# -----------------------------
 # Actions
-# -----------------------------
-
 class ActionDecision(BaseModel):
     action: ActionType
     target: Optional[str] = None
@@ -113,17 +93,12 @@ class ActionDecision(BaseModel):
     rationale: str
     confidence: float = Field(ge=0.0, le=1.0)
 
-
 class ActionRecord(BaseModel):
     action: ActionType
     target: Optional[str]
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
-
-# -----------------------------
 # Crawl State
-# -----------------------------
-
 class CrawlState(BaseModel):
     """
     Canonical LangGraph state.
