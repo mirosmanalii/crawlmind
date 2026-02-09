@@ -1,40 +1,169 @@
+"""
+DOM Feature Extraction
+
+Responsible for converting a raw DOM snapshot (HTML string)
+into a deterministic, structured feature vector used by
+page classification and action policies.
+
+NO browser logic
+NO LangGraph logic
+NO LLMs
+"""
+
 from bs4 import BeautifulSoup
-from typing import Dict
+from typing import List
+from crawler_graph.state import PageFeatures
 
+# Public API
+def extract_dom_features(dom: str, url: str | None = None) -> PageFeatures:
+    """
+    Entry point for DOM feature extraction.
 
-def extract_dom_features(dom: str) -> Dict:
+    Args:
+        dom: Raw HTML string
+        url: Optional current URL (used for pattern hints)
+
+    Returns:
+        PageFeatures
+    """
+
     soup = BeautifulSoup(dom, "html.parser")
 
-    inputs = soup.find_all("input")
-    forms = soup.find_all("form")
-    tables = soup.find_all("table")
-
-    has_username = any(
-        i.get("type") in ("text", "email") and "user" in (i.get("name", "") + i.get("id", "")).lower()
-        for i in inputs
+    features = PageFeatures(
+        has_form=_has_form(soup),
+        has_username_input=_has_username_input(soup),
+        has_password_input=_has_password_input(soup),
+        input_count=_count_inputs(soup),
+        submit_button_count=_count_submit_buttons(soup),
+        table_count=_count_tables(soup),
+        pagination_controls=_has_pagination_controls(soup),
+        error_banners=_has_error_banners(soup),
+        empty_state_detected=_has_empty_state(soup),
+        url_patterns=_extract_url_patterns(url),
     )
 
-    has_password = any(
-        i.get("type") == "password" for i in inputs
-    )
+    return features
 
-    submit_buttons = soup.find_all("button", {"type": "submit"})
+# Feature Detectors
+def _has_form(soup: BeautifulSoup) -> bool:
+    return soup.find("form") is not None
 
-    pagination_controls = bool(
-        soup.select(".pagination, [aria-label='pagination'], nav[role='navigation']")
-    )
 
-    error_banners = bool(
-        soup.select(".error, .alert, [role='alert']")
-    )
+def _has_username_input(soup: BeautifulSoup) -> bool:
+    """
+    Heuristic detection of username/email fields.
+    """
+    candidates = soup.find_all("input", {"type": ["text", "email"]})
+    for c in candidates:
+        attrs = " ".join([
+            c.get("name", ""),
+            c.get("id", ""),
+            c.get("placeholder", ""),
+            c.get("aria-label", "")
+        ]).lower()
 
-    return {
-        "has_form": len(forms) > 0,
-        "has_username_input": has_username,
-        "has_password_input": has_password,
-        "input_count": len(inputs),
-        "submit_button_count": len(submit_buttons),
-        "table_count": len(tables),
-        "pagination_controls": pagination_controls,
-        "error_banners": error_banners,
-    }
+        if any(k in attrs for k in ["user", "email", "login", "username"]):
+            return True
+    return False
+
+
+def _has_password_input(soup: BeautifulSoup) -> bool:
+    return soup.find("input", {"type": "password"}) is not None
+
+
+def _count_inputs(soup: BeautifulSoup) -> int:
+    return len(soup.find_all("input"))
+
+
+def _count_submit_buttons(soup: BeautifulSoup) -> int:
+    buttons = soup.find_all("button")
+    inputs = soup.find_all("input", {"type": "submit"})
+    return len(buttons) + len(inputs)
+
+
+def _count_tables(soup: BeautifulSoup) -> int:
+    return len(soup.find_all("table"))
+
+
+def _has_pagination_controls(soup: BeautifulSoup) -> bool:
+    """
+    Detect common pagination patterns.
+    """
+    pagination_keywords = ["next", "previous", "page", "pagination"]
+
+    # aria-label / role based
+    for nav in soup.find_all("nav"):
+        label = nav.get("aria-label", "").lower()
+        if any(k in label for k in pagination_keywords):
+            return True
+
+    # link text based
+    for a in soup.find_all("a"):
+        text = (a.get_text() or "").lower()
+        if text.strip() in {"next", "prev", "previous"}:
+            return True
+
+    return False
+
+
+def _has_error_banners(soup: BeautifulSoup) -> bool:
+    """
+    Detect inline error banners / alerts.
+    """
+    error_keywords = ["error", "failed", "invalid", "unauthorized", "forbidden"]
+
+    for el in soup.find_all(["div", "span", "p"]):
+        cls = " ".join(el.get("class", [])).lower()
+        text = (el.get_text() or "").lower()
+
+        if any(k in cls for k in error_keywords):
+            return True
+        if any(k in text for k in error_keywords):
+            return True
+
+    return False
+
+
+def _has_empty_state(soup: BeautifulSoup) -> bool:
+    """
+    Detect empty states like:
+    - No results found
+    - Nothing here yet
+    """
+    empty_phrases = [
+        "no results",
+        "nothing found",
+        "empty",
+        "no data",
+        "no records"
+    ]
+
+    body_text = soup.get_text(separator=" ").lower()
+    return any(p in body_text for p in empty_phrases)
+
+
+def _extract_url_patterns(url: str | None) -> List[str]:
+    """
+    Extract semantic hints from URL.
+    Used as weak signals only.
+    """
+    if not url:
+        return []
+
+    patterns = []
+    lowered = url.lower()
+
+    if "login" in lowered:
+        patterns.append("login")
+    if "auth" in lowered:
+        patterns.append("auth")
+    if "signin" in lowered:
+        patterns.append("signin")
+    if "signup" in lowered:
+        patterns.append("signup")
+    if "page=" in lowered or "offset=" in lowered:
+        patterns.append("pagination")
+    if any(k in lowered for k in ["error", "403", "404", "500"]):
+        patterns.append("error")
+
+    return patterns
