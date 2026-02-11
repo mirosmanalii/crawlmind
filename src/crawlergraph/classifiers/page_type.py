@@ -199,7 +199,8 @@ def _classify_dashboard_page(
     Landing pages with multiple widgets/cards.
     """
     if (
-        not features.has_form
+        features.content_block_count >= 2
+        and not features.has_form
         and not features.pagination_controls
         and features.table_count == 0
         and not features.empty_state_detected
