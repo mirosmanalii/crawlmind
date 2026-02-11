@@ -39,9 +39,9 @@ def extract_dom_features(dom: str, url: str | None = None) -> PageFeatures:
         pagination_controls=_has_pagination_controls(soup),
         error_banners=_has_error_banners(soup),
         empty_state_detected=_has_empty_state(soup),
+        content_block_count=_count_content_blocks(soup),
         url_patterns=_extract_url_patterns(url),
     )
-
     return features
 
 # Feature Detectors
@@ -105,6 +105,19 @@ def _has_pagination_controls(soup: BeautifulSoup) -> bool:
 
     return False
 
+def _count_content_blocks(soup: BeautifulSoup) -> int:
+    """
+    Counts high-level content blocks used to detect dashboards
+    and rich landing pages.
+
+    We intentionally keep this broad and cheap.
+    """
+    return len(
+        soup.find_all(
+            ["section", "article", "main", "aside", "div"],
+            recursive=True
+        )
+    )
 
 def _has_error_banners(soup: BeautifulSoup) -> bool:
     """
@@ -123,7 +136,6 @@ def _has_error_banners(soup: BeautifulSoup) -> bool:
 
     return False
 
-
 def _has_empty_state(soup: BeautifulSoup) -> bool:
     """
     Detect empty states like:
@@ -140,7 +152,6 @@ def _has_empty_state(soup: BeautifulSoup) -> bool:
 
     body_text = soup.get_text(separator=" ").lower()
     return any(p in body_text for p in empty_phrases)
-
 
 def _extract_url_patterns(url: str | None) -> List[str]:
     """
