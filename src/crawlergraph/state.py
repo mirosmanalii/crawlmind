@@ -47,6 +47,7 @@ class PageFeatures(BaseModel):
     has_password_input: bool = False
     input_count: int = 0
     submit_button_count: int = 0
+    content_block_count: int = 0
 
     table_count: int = 0
     pagination_controls: bool = False
@@ -54,6 +55,8 @@ class PageFeatures(BaseModel):
     error_banners: bool = False
     empty_state_detected: bool = False
 
+    content_block_count: int = 0
+    
     url_patterns: List[str] = Field(default_factory=list)
 
 class RuntimeSignals(BaseModel):
