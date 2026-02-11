@@ -5,21 +5,13 @@ from crawlergraph.features.runtime_features import extract_runtime_features
 from crawlergraph.classifiers.page_type import classify_page_type
 from crawlergraph.state import PageType
 
-
-# -----------------------------
 # Helpers
-# -----------------------------
-
 def classify(dom: str, raw_signals: dict, url: str = "https://example.com"):
     features = extract_dom_features(dom, url)
     signals = extract_runtime_features(raw_signals)
     return classify_page_type(features, signals)
 
-
-# -----------------------------
 # Tests
-# -----------------------------
-
 def test_login_page_classification():
     dom = """
     <html>
@@ -32,12 +24,10 @@ def test_login_page_classification():
       </body>
     </html>
     """
-
     page_type, confidence = classify(dom, {"status_code": 200}, url="https://example.com/login")
 
     assert page_type == PageType.LOGIN
     assert confidence >= 0.9
-
 
 def test_error_page_500():
     dom = "<html><body><h1>Server Error</h1></body></html>"
@@ -46,7 +36,6 @@ def test_error_page_500():
 
     assert page_type == PageType.ERROR
     assert confidence >= 0.95
-
 
 def test_spa_runtime_error_page():
     dom = "<html><body><div id='app'></div></body></html>"
@@ -62,7 +51,6 @@ def test_spa_runtime_error_page():
 
     assert page_type == PageType.ERROR
     assert confidence >= 0.75
-
 
 def test_listing_page_with_pagination():
     dom = """
@@ -83,7 +71,6 @@ def test_listing_page_with_pagination():
     assert page_type == PageType.LISTING
     assert confidence >= 0.85
 
-
 def test_detail_page():
     dom = """
     <html>
@@ -100,7 +87,6 @@ def test_detail_page():
 
     assert page_type == PageType.DETAIL
     assert confidence >= 0.7
-
 
 def test_generic_form_page():
     dom = """
@@ -121,7 +107,6 @@ def test_generic_form_page():
     assert page_type == PageType.FORM
     assert confidence >= 0.75
 
-
 def test_empty_state_page():
     dom = """
     <html>
@@ -135,7 +120,6 @@ def test_empty_state_page():
 
     assert page_type == PageType.EMPTY
     assert confidence >= 0.85
-
 
 def test_dashboard_page_fallback():
     dom = """
@@ -151,7 +135,6 @@ def test_dashboard_page_fallback():
 
     assert page_type == PageType.DASHBOARD
     assert confidence >= 0.5
-
 
 def test_unknown_page():
     dom = "<html><body><div>Hello world</div></body></html>"
