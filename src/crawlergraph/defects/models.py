@@ -1,8 +1,7 @@
 from enum import Enum
 from typing import Dict, Optional
 from pydantic import BaseModel, Field
-from datetime import datetime
-
+from datetime import datetime, timezone
 
 class DefectCategory(str, Enum):
     FUNCTIONAL = "Functional"
@@ -23,4 +22,6 @@ class Defect(BaseModel):
     description: str
     evidence: Dict
 
-    detected_at: datetime = Field(default_factory=datetime.timezone.utc.now)
+    detected_at: datetime = Field(
+    default_factory=lambda: datetime.now(timezone.utc)
+)
