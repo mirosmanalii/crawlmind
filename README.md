@@ -170,10 +170,10 @@ No deterministic classification matched.
 * Ambiguous structure
 
 ## Current Severity Mapping (v1)
-5xx Server Error = 9
-4xx Client Error = 7
-Console Error	= 6
-Network Failure	= 6
-Slow Page Load = 6
-Long Tasks = 5
-Layout Overlap = 5
+* 5xx Server Error = 9
+* 4xx Client Error = 7
+* Console Error	= 6
+* Network Failure	= 6
+* Slow Page Load = 6
+* Long Tasks = 5
+* Layout Overlap = 5
