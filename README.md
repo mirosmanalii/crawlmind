@@ -1,6 +1,21 @@
 # CRAWLMIND
 A thinking crawler, not a scraper.
 
+Crawlmind is a production-grade system that: 
+  - Autonomously navigates complex web applications using a real browser (e.g. Playwright)
+  - Handles login flows, pagination, and multi-step user workflows
+  - Classifies page types based on DOM/control composition
+
+Captures signals such as:
+  - Broken links
+  - Form validation failures
+  - Console/runtime errors
+  - Layout overlaps and UI issues
+  - Performance bottlenecks
+  - Classifies defects into: Functional, UI, Performance, Accessibility, Content, Security
+  - Scores and prioritizes defects using severity, frequency, reproducibility, and impact
+  - Produces structured, machine-readable outputs for downstream systems
+
 ## Page types:
 ## 1. ERROR
 ### Semantic Meaning
@@ -146,7 +161,6 @@ Landing page aggregating multiple content blocks.
 * Form
 
 ## 10. UNKNOWN
-
 ### Semantic Meaning
 No deterministic classification matched.
 
@@ -154,3 +168,12 @@ No deterministic classification matched.
 * No rule fires
 * Confidence < threshold
 * Ambiguous structure
+
+## Current Severity Mapping (v1)
+* 5xx Server Error = 9
+* 4xx Client Error = 7
+* Console Error	= 6
+* Network Failure	= 6
+* Slow Page Load = 6
+* Long Tasks = 5
+* Layout Overlap = 5
