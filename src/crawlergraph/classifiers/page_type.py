@@ -171,11 +171,16 @@ def _classify_form_page(
 ) -> Tuple[PageType | None, float]:
     """
     Generic data entry forms (non-auth).
+
+    Should represent pages where the primary purpose
+    is structured data entry — not just a search box.
     """
+
     if (
         features.has_form
         and features.input_count >= 3
         and not features.has_password_input
+        and features.content_block_count <= 3  
     ):
         return PageType.FORM, 0.8
 
