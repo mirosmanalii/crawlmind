@@ -1,5 +1,6 @@
 export interface ObservationPayload {
   dom: string;
+  screenshot?: string; // base64 encoded PNG
   signals: {
     statusCode?: number;
     console: {
