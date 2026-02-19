@@ -12,10 +12,14 @@ export class PlaywrightWorker {
     await this.session.init();
   }
 
+  async navigate(url: string): Promise<void> {
+    const page = this.session.getPage();
+    await page.goto(url, { waitUntil: "networkidle" });
+  }
+
   async execute(action: ActionDecision): Promise<ObservationPayload> {
     const page = this.session.getPage();
 
-    // Initialize signal collection for this execution cycle
     const collector = new SignalCollector(page);
     collector.reset();
     collector.attach();
@@ -24,16 +28,11 @@ export class PlaywrightWorker {
     const screenshotManager = new ScreenshotManager(page);
 
     try {
-      // Execute action safely
       await executor.execute(action);
 
-      // Capture performance metrics
       await collector.capturePerformanceTiming();
 
-      // Capture final DOM snapshot
       const dom = await page.content();
-
-      // Capture screenshot (non-fatal if it fails)
       const screenshot = await screenshotManager.captureFullPage();
 
       const signals = collector.getSignals();
@@ -58,7 +57,6 @@ export class PlaywrightWorker {
         },
       };
     } catch (err) {
-      // Attempt screenshot even if execution fails
       const screenshot = await screenshotManager.captureFullPage();
 
       return {
