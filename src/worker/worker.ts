@@ -1,6 +1,7 @@
 import { BrowserSession } from "./core/browserSession";
 import { ActionDecision } from "./models/action";
 import { ObservationPayload } from "./models/observation";
+import { SignalCollector } from "./core/signalCollector";
 
 export class PlaywrightWorker {
   private session = new BrowserSession();
@@ -10,35 +11,60 @@ export class PlaywrightWorker {
   }
 
   async execute(action: ActionDecision): Promise<ObservationPayload> {
-    const page = this.session.getPage();
+  const page = this.session.getPage();
 
-    try {
-      await this.performAction(page, action);
-      await page.waitForLoadState("networkidle");
+  const collector = new SignalCollector(page);
+  collector.reset();
+  collector.attach();
 
-      const dom = await page.content();
+  const startTime = Date.now();
 
-      return {
-        dom,
-        signals: {
-          console: { errors: [], warnings: [] },
-          network: { failedRequests: 0, requestErrors: [] },
-          performance: {},
-          redirects: [],
+  try {
+    await this.performAction(page, action);
+    await page.waitForLoadState("networkidle");
+
+    await collector.capturePerformanceTiming();
+
+    const dom = await page.content();
+
+    const signals = collector.getSignals();
+
+    return {
+      dom,
+      signals: {
+        statusCode: signals.statusCode,
+        console: {
+          errors: signals.consoleErrors,
+          warnings: signals.consoleWarnings,
         },
-      };
-    } catch (err) {
-      return {
-        dom: "",
-        signals: {
-          console: { errors: [String(err)], warnings: [] },
-          network: { failedRequests: 0, requestErrors: [] },
-          performance: {},
-          redirects: [],
+        network: {
+          failedRequests: signals.failedRequests,
+          requestErrors: signals.requestErrors,
         },
-      };
-    }
+        performance: {
+          loadTimeMs: signals.loadTimeMs,
+        },
+        redirects: signals.redirects,
+      },
+    };
+  } catch (err) {
+    return {
+      dom: "",
+      signals: {
+        console: {
+          errors: [String(err)],
+          warnings: [],
+        },
+        network: {
+          failedRequests: 0,
+          requestErrors: [],
+        },
+        performance: {},
+        redirects: [],
+      },
+    };
   }
+}
 
   private async performAction(page: any, action: ActionDecision) {
     switch (action.action) {
