@@ -3,6 +3,7 @@ import { ActionDecision } from "./models/action";
 import { ObservationPayload } from "./models/observation";
 import { SignalCollector } from "./core/signalCollector";
 import { ActionExecutor } from "./core/actionExecutor";
+import { ScreenshotManager } from "./core/screenshotManager";
 
 export class PlaywrightWorker {
   private session = new BrowserSession();
@@ -20,6 +21,7 @@ export class PlaywrightWorker {
     collector.attach();
 
     const executor = new ActionExecutor(page);
+    const screenshotManager = new ScreenshotManager(page);
 
     try {
       // Execute action safely
@@ -31,10 +33,14 @@ export class PlaywrightWorker {
       // Capture final DOM snapshot
       const dom = await page.content();
 
+      // Capture screenshot (non-fatal if it fails)
+      const screenshot = await screenshotManager.captureFullPage();
+
       const signals = collector.getSignals();
 
       return {
         dom,
+        screenshot,
         signals: {
           statusCode: signals.statusCode,
           console: {
@@ -52,9 +58,12 @@ export class PlaywrightWorker {
         },
       };
     } catch (err) {
-      // Hard failure fallback — worker must never crash
+      // Attempt screenshot even if execution fails
+      const screenshot = await screenshotManager.captureFullPage();
+
       return {
         dom: "",
+        screenshot,
         signals: {
           statusCode: undefined,
           console: {
